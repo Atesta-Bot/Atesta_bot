@@ -8,6 +8,27 @@ export const setupScene = new Scenes.WizardScene(
 	'SETUP_SCENE',
 	async (ctx) => {
 		console.log(`[setup scene started for chat ${ctx.chat?.id}]`)
+		try {
+			// get user session from db if any
+			const { data, error } = await supabase
+				.from('attesters')
+				.select('*')
+				.eq('chatId', ctx.chat?.id)
+				.single()
+
+			if (error) throw error
+			if (data) {
+				console.log(`User found!: ${JSON.stringify(data)}`)
+				await ctx.reply(`Welcome again ${data.name}`)
+				await ctx.reply('Create a new attestation with /attest')
+				return await ctx.scene.leave()
+			}
+		} catch (error) {
+			console.error(error)
+			await ctx.reply(JSON.stringify(error))
+			return await ctx.scene.leave()
+		}
+
 		await ctx.reply('Welcome to atesta_bot, a bot for creating attestations of expenses\' tickets for DAOs and similar entities.')
 		await ctx.reply('Before we start, we need some information to get you started...')
 		await ctx.reply('What is your name?');
