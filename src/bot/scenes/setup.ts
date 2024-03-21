@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { Scenes } from "telegraf";
 import { supabase } from "../../db";
+import { EVM_ADDRESS_REGEX } from "../../types/regex";
 
 // Require a wallet 
 // Require the user's name
@@ -16,7 +17,6 @@ export const setupScene = new Scenes.WizardScene(
 				.eq('chatId', ctx.chat?.id)
 				.single()
 
-			if (error) throw error
 			if (data) {
 				console.log(`User found!: ${JSON.stringify(data)}`)
 				await ctx.reply(`Welcome again ${data.name}`)
@@ -48,7 +48,11 @@ export const setupScene = new Scenes.WizardScene(
 		return ctx.wizard.next();
 	},
 	async (ctx) => {
-		// todo: validate address
+		// validate address
+		if (!EVM_ADDRESS_REGEX.test(ctx.message.text)) {
+			return await ctx.reply('Must be a valid EVM address')
+		}
+
 		ctx.wizard.state.userData.address = ctx.message.text;
 
 		await ctx.reply('Saving your profile...')

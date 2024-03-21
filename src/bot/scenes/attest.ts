@@ -1,7 +1,10 @@
 // @ts-nocheck
 import { Markup, Scenes } from "telegraf";
-import { uploadFile } from "../../db";
+import { supabase, uploadFile } from "../../db";
 import { Bucket } from "../../types/buckets";
+import { Chains } from "../../wallet/chains";
+import { createAttestationFor } from "../../eas/utils";
+import { NUMBER_REGEX } from "../../types/regex";
 
 export const attestScene = new Scenes.BaseScene('ATTESTA_SCENE')
 
@@ -18,20 +21,35 @@ export const attestScene = new Scenes.BaseScene('ATTESTA_SCENE')
 
 attestScene.enter(async (ctx) => {
 	console.log('[attest scene started]')
-	ctx.session.attestationData = {
-		chatId: ctx.chat?.id
+	// get user information
+	try {
+		const { data, error } = await supabase
+			.from('attesters')
+			.select('*')
+			.eq('chatId', ctx.chat?.id)
+			.single()
+
+		if (error) throw error
+		if (!data) throw 'You need to have to setup the chat before making attestations.\nCall /start again to trigger the setup'
+
+		ctx.session.attestationData = {
+			chatId: ctx.chat?.id,
+			user: data
+		}
+
+		await ctx.reply('Send a photo of the ticket')
+	} catch (error) {
+		console.error(error)
+		await ctx.reply(JSON.stringify(error))
+		return await ctx.scene.leave()
 	}
 
-	await ctx.reply('Send a photo of the ticket')
-	// await ctx.reply('Attestation scene started', Markup.inlineKeyboard([
-	// 	Markup.button.callback('Movie button', 'MOVIE_ACTION'),
-	// 	Markup.button.callback('Second button', 'SECOND_ACTION'),
-	// ]))
 })
 
 attestScene.on('photo', async (ctx) => {
 	try {
 		await ctx.reply('Uploading photo...')
+		console.log('Uploading photo to supabase...')
 
 		const photo = ctx.message.photo.pop()
 		const fileLink = await ctx.telegram.getFileLink(photo?.file_id)
@@ -56,12 +74,13 @@ attestScene.on('photo', async (ctx) => {
 	}
 })
 
-// hears for numbers
-attestScene.hears(/-?\d+(\.\d+)?/, async (ctx) => {
+// hears for numbers, intented to receive USD fiat amount
+attestScene.hears(NUMBER_REGEX, async (ctx) => {
 	const amount = Number(ctx.text)
 
 	ctx.session.attestationData.amount = amount
 
+	// todo: change order to set first the receiver
 	// ask the user for the chain where the attestation is gonna be made
 	await ctx.reply('Select a chain to create the attestation', Markup.inlineKeyboard([
 		Markup.button.callback('Optimism', 'OPTIMISM_ATTESTATION'),
@@ -69,36 +88,11 @@ attestScene.hears(/-?\d+(\.\d+)?/, async (ctx) => {
 	]))
 })
 
-attestScene.action('OPTIMISM_ATTESTATION', async (ctx) => {
-	await ctx.reply('optmimism')
-})
-attestScene.action('ARBITRUM_ATTESTATION', async (ctx) => {
-	await ctx.reply('arbitrum')
-})
+// create attestation 
+attestScene.action('OPTIMISM_ATTESTATION', createAttestationFor(Chains.Optimism))
+attestScene.action('ARBITRUM_ATTESTATION', createAttestationFor(Chains.Arbitrum))
 
-// scenarioTypeScene.enter((ctx) => {
-//   ctx.session.myData = {};
-//   ctx.reply('What is your drug?', Markup.inlineKeyboard([
-//     Markup.callbackButton('Movie', MOVIE_ACTION),
-//     Markup.callbackButton('Theater', THEATER_ACTION),
-//   ]).extra());
-// });
-//
-// scenarioTypeScene.action(THEATER_ACTION, (ctx) => {
-//   ctx.reply('You choose theater');
-//   ctx.session.myData.preferenceType = 'Theater';
-//   return ctx.scene.enter('SOME_OTHER_SCENE_ID'); // switch to some other scene
-// });
-//
-// scenarioTypeScene.action(MOVIE_ACTION, (ctx) => {
-//   ctx.reply('You choose movie, your loss');
-//   ctx.session.myData.preferenceType = 'Movie';
-//   return ctx.scene.leave(); // exit global namespace
-// });
-//
-// scenarioTypeScene.leave((ctx) => {
-//   ctx.reply('Thank you for your time!');
-// });
-//
-// // What to do if user entered a raw message or picked some other option?
-// scenarioTypeScene.use((ctx) => ctx.replyWithMarkdown('Please choose either Movie or Theater'));
+// Catch all handler
+attestScene.hears(/.*/, async (ctx) => {
+	await ctx.reply('Not a valid response')
+})
