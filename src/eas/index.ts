@@ -6,6 +6,7 @@ const EAS_ADDRESS = "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"; // "0x0a7E2Ff5
 const SCHEMA_UID = "0x327ff96e3e610b2c0d090a3a8d2b995644461930ca1ab54431222e2fd09bbaa9";
 
 const schemaEncoder = new SchemaEncoder("string DAO_name,bytes32 ticket_ref,bool is_payed,string event_name");
+
 // const encodedData = schemaEncoder.encodeData([
 // 	{ name: "DAO_name", value: "frutero_club", type: "string" },
 // 	{ name: "ticket_ref", value: "0x746869732069732e20746865207469636b6574207265666572656e6365000000", type: "bytes32" },
@@ -19,7 +20,7 @@ interface ISchemaItem {
 	type: string
 }
 
-interface ISchema {
+export interface IAttestationData {
 	daoName: string,
 	ticketRef: string, //?
 	isPayed: boolean,
@@ -44,8 +45,16 @@ export class Attester {
 		* @param data - An array of values compliant with our schema (ISchemaItem)
 		* @returns the new attestation uid
 	*/
-	async createAttestation(data: ISchemaItem[]) {
-		const _encodedData = schemaEncoder.encodeData(data)
+	async createAttestation(data: IAttestationData) {
+
+		// todo: review schema
+		const _toEncode: ISchemaItem[] = [
+			{ name: "DAO_name", value: data.daoName, type: "string" },
+			{ name: "ticket_ref", value: data.ticketRef, type: "bytes32" },
+			{ name: "is_payed", value: data.isPayed, type: "bool" },
+			{ name: "event_name", value: data.eventName, type: "string" }
+		]
+		const _encodedData = schemaEncoder.encodeData(_toEncode)
 
 		const tx = await this.eas.attest({
 			schema: this.schemaUID,
