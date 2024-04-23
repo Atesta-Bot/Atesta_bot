@@ -12,12 +12,14 @@ main {
   background: white;
   background-size: 200% 200%;
   animation: gradientAnimation 5s linear infinite;
+  height: 100%;
 }
 
 body {
   background: #121215 !important;
   background-size: 200% 200%;
   animation: gradientAnimation 5s linear infinite;
+  font-family: "Inconsolata";
 }
 
 .logo {
