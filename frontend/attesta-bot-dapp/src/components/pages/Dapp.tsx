@@ -16,7 +16,6 @@ import {
   AccordionButton,
   AccordionPanel,
   AccordionIcon,
-  IconButton,
 } from "@chakra-ui/react";
 import "@fontsource/inconsolata";
 import "@fontsource/iceland";

@@ -9,7 +9,7 @@ function Home() {
       <h1>Home</h1>
       <Flex flexDir="column">
         <Image src={logo} alt="logo" />
-        <Heading> WELCOME TO TETILLAS-BOT!!</Heading>
+        <Heading> WELCOME TO Attesta Bot</Heading>
       </Flex>
       <Button onClick={() => navigate("/dapp")}> Go to DApp</Button>
     </div>
