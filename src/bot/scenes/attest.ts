@@ -30,7 +30,7 @@ attestScene.enter(async (ctx) => {
 			.single()
 
 		if (error) throw error
-		if (!data) throw 'You need to have to setup the chat before making attestations.\nCall /start again to trigger the setup'
+		if (!data) throw 'You need to setup the chat before making attestations.\nCall /start again to trigger the setup'
 
 		ctx.session.attestationData = {
 			chatId: ctx.chat?.id,
