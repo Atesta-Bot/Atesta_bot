@@ -3,28 +3,21 @@ import { getSignerFor } from '../wallet';
 import { Chains } from "../wallet/chains";
 
 const EAS_ADDRESS = "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"; // "0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0";
-const SCHEMA_UID = "0x327ff96e3e610b2c0d090a3a8d2b995644461930ca1ab54431222e2fd09bbaa9";
+const SCHEMA_UID = "0xe4e843eca0b777daf3500b7712099c9426ef4522021216503657575fb132ca2b";
 
-const schemaEncoder = new SchemaEncoder("string DAO_name,bytes32 ticket_ref,bool is_payed,string event_name");
-
-// const encodedData = schemaEncoder.encodeData([
-// 	{ name: "DAO_name", value: "frutero_club", type: "string" },
-// 	{ name: "ticket_ref", value: "0x746869732069732e20746865207469636b6574207265666572656e6365000000", type: "bytes32" },
-// 	{ name: "is_payed", value: false, type: "bool" },
-// 	{ name: "event_name", value: "ethcdm", type: "string" }
-// ]);
+const schemaEncoder = new SchemaEncoder("string DAO_name,string event_name,string description,string usd_amount");
 
 interface ISchemaItem {
 	name: string,
 	value: any,
-	type: string
+	type: "string"
 }
 
 export interface IAttestationData {
 	daoName: string,
-	ticketRef: string, //?
-	isPayed: boolean,
-	eventName: string
+	eventName: string,
+	description: string,
+	usdAmount: number
 }
 
 /**
@@ -32,41 +25,41 @@ export interface IAttestationData {
 */
 export class Attester {
 	eas: EAS;
-	private schemaUID: string;
 
 	constructor(chain: Chains) {
 		const signer = getSignerFor(chain)
 		this.eas = new EAS(EAS_ADDRESS).connect(signer);
-		this.schemaUID = SCHEMA_UID;
 	}
 
 	/**
 		* Creates a new attestation
-		* @param data - An array of values compliant with our schema (ISchemaItem)
+		* @param to - Recipient of the attestation
+		* @param data - The values for our schema
 		* @returns the new attestation uid
 	*/
-	async createAttestation(data: IAttestationData) {
+	async createAttestation(to: string, data: IAttestationData) {
 
-		// todo: review schema
 		const _toEncode: ISchemaItem[] = [
 			{ name: "DAO_name", value: data.daoName, type: "string" },
-			{ name: "ticket_ref", value: data.ticketRef, type: "bytes32" },
-			{ name: "is_payed", value: data.isPayed, type: "bool" },
-			{ name: "event_name", value: data.eventName, type: "string" }
+			{ name: "event_name", value: data.eventName, type: "string" },
+			{ name: "description", value: data.description, type: "string" },
+			{ name: "usd_amount", value: data.usdAmount.toString(), type: "string" },
 		]
+
 		const _encodedData = schemaEncoder.encodeData(_toEncode)
 
 		const tx = await this.eas.attest({
-			schema: this.schemaUID,
+			schema: SCHEMA_UID,
 			data: {
-				recipient: "0x0000000000000000000000000000000000000000",
+				recipient: to,
 				expirationTime: BigInt(0),
-				revocable: false, // Be aware that if your schema is not revocable, this MUST be false
+				revocable: false,
 				data: _encodedData,
 			},
 		});
 		const newAttestationUID = await tx.wait();
 		console.log("New attestation UID:", newAttestationUID);
+
 		return newAttestationUID;
 	}
 }
