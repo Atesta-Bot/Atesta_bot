@@ -14,7 +14,7 @@ export const setupScene = new Scenes.WizardScene(
 			const { data, error } = await supabase
 				.from('attesters')
 				.select('*')
-				.eq('chatId', ctx.chat?.id)
+				.eq('chat_id', ctx.chat?.id)
 				.single()
 
 			if (data) {

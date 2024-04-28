@@ -8,17 +8,7 @@ import { NUMBER_REGEX } from "../../types/regex";
 
 export const attestScene = new Scenes.BaseScene('ATTESTA_SCENE')
 
-// attestation flow 
-// 1. ticket photo
-// 1.1 save it in storage
-//
-// 2. fiat amount in usd
-//
-// 3. select chain (selector)
-// 3.1 update attestation in db 
-//
-// 4. set recipent
-
+// 1. ask for the ticket img
 attestScene.enter(async (ctx) => {
 	console.log('[attest scene started]')
 	// get user information
@@ -26,7 +16,7 @@ attestScene.enter(async (ctx) => {
 		const { data, error } = await supabase
 			.from('attesters')
 			.select('*')
-			.eq('chatId', ctx.chat?.id)
+			.eq('chat_id', ctx.chat?.id)
 			.single()
 
 		if (error) throw error
@@ -34,10 +24,10 @@ attestScene.enter(async (ctx) => {
 
 		ctx.session.attestationData = {
 			chatId: ctx.chat?.id,
-			user: data
+			user: data,
 		}
 
-		await ctx.reply('Send a photo of the ticket')
+		await ctx.reply('Enter the name of the event')
 	} catch (error) {
 		console.error(error)
 		await ctx.reply(JSON.stringify(error))
@@ -46,6 +36,15 @@ attestScene.enter(async (ctx) => {
 
 })
 
+// save the eventName and ask for the ticket img 
+attestScene.hears(/.*/, async (ctx, next) => {
+	if (ctx.session.attestationData.eventName) return await next()
+
+	ctx.session.attestationData.eventName = ctx.message.text
+	await ctx.reply('Send a photo of the ticket')
+})
+
+// handle photo upload and ask for the amount in usd
 attestScene.on('photo', async (ctx) => {
 	try {
 		await ctx.reply('Uploading photo...')
@@ -75,24 +74,50 @@ attestScene.on('photo', async (ctx) => {
 })
 
 // hears for numbers, intented to receive USD fiat amount
-attestScene.hears(NUMBER_REGEX, async (ctx) => {
+// ask for a description or note
+attestScene.hears(NUMBER_REGEX, async (ctx, next) => {
+	if (ctx.session.attestationData.usdAmount) return await next()
 	const amount = Number(ctx.text)
 
-	ctx.session.attestationData.amount = amount
+	ctx.session.attestationData.usdAmount = amount
 
-	// todo: change order to set first the receiver
-	// ask the user for the chain where the attestation is gonna be made
-	await ctx.reply('Select a chain to create the attestation', Markup.inlineKeyboard([
-		Markup.button.callback('Optimism', 'OPTIMISM_ATTESTATION'),
-		Markup.button.callback('Arbitrum', 'ARBITRUM_ATTESTATION'),
-	]))
+	await ctx.reply('Add a description for the attestation')
+})
+
+attestScene.hears(/.*/, async (ctx) => {
+	if (!ctx.session.attestationData.imageUrl ||
+		!ctx.session.attestationData.usdAmount) {
+		return await ctx.reply('Not a valid response')
+	}
+
+	if (!ctx.session.attestationData.description) {
+		// save the description and ask for the dao
+		ctx.session.attestationData.description = ctx.message.text;
+		await ctx.reply('Now enter the name of the DAO')
+	} else if (!ctx.session.attestationData.daoAddress) {
+		// search for the dao in db 
+		// save the dao
+		const { data } = await supabase
+			.from('daos')
+			.select('*')
+			.eq('name', ctx.message.text)
+			.single()
+
+		if (!data) return await ctx.reply('No DAO found with that name')
+
+		ctx.session.attestationData.dao = data
+
+		// ask for the chain to conclude
+		await ctx.reply('Select a chain to create the attestation', Markup.inlineKeyboard([
+			Markup.button.callback('Optimism', 'OPTIMISM_ATTESTATION'),
+			Markup.button.callback('Arbitrum', 'ARBITRUM_ATTESTATION'),
+		]))
+	} else {
+		await ctx.reply('Not a valid response')
+	}
 })
 
 // create attestation 
 attestScene.action('OPTIMISM_ATTESTATION', createAttestationFor(Chains.Optimism))
 attestScene.action('ARBITRUM_ATTESTATION', createAttestationFor(Chains.Arbitrum))
 
-// Catch all handler
-attestScene.hears(/.*/, async (ctx) => {
-	await ctx.reply('Not a valid response')
-})
