@@ -1,7 +1,20 @@
-export enum Chains {
-	Optimism = 'https://optimism-rpc.publicnode.com',
-	OptimismSepolia = 'https://optimism-sepolia-rpc.publicnode.com',
-	Arbitrum = 'https://arbitrum-one-rpc.publicnode.com',
-	ArbitrumSepolia = 'https://arbitrum-sepolia-rpc.publicnode.com',
-	EthereumSepolia = 'https://ethereum-sepolia-rpc.publicnode.com'
+export interface IChain {
+	id: string,
+	name: string,
+	rpcEndpoint: string,
+	explorerUrl: string,
 }
+export const Chains: IChain[] = [
+	{
+		id: 'ethereum-sepolia',
+		name: 'Ethereum Sepolia',
+		rpcEndpoint: 'https://ethereum-sepolia-rpc.publicnode.com',
+		explorerUrl: 'https://sepolia.easscan.org'
+	},
+	{
+		id: 'optimism-sepolia',
+		name: 'Optimism Sepolia',
+		rpcEndpoint: 'https://optimism-sepolia-rpc.publicnode.com',
+		explorerUrl: 'https://optimism-sepolia.easscan.org'
+	}
+]

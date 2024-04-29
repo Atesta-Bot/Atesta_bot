@@ -17,7 +17,7 @@
 		"typescript": "^5.3.3"
 	},
 	"dependencies": {
-		"@ethereum-attestation-service/eas-sdk": "^1.4.1",
+		"@ethereum-attestation-service/eas-sdk": "^2.1.2",
 		"@supabase/supabase-js": "^2.39.8",
 		"dotenv": "^16.4.1",
 		"ethers": "^6.10.0",

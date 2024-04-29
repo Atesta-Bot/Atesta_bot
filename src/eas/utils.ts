@@ -1,18 +1,15 @@
 // @ts-nocheck
 import { Context } from "telegraf"
-import { Chains } from "../wallet/chains"
-import { Attester, IAttestationData } from "."
+import { IChain } from "../wallet/chains"
+import { Attester } from "."
 
 /**
 	* Handler that returns a Middleware for Telegraf actions 
 */
-export const createAttestationFor = (chain: Chains) => {
+export const createAttestationFor = (chain: IChain) => {
 	return async (ctx: Context) => {
 		// todo: Handle attestation creation
-		await ctx.reply(`Creating attestation on ${chain}...`)
-		console.log(`Creating attestation for ${chain}...`)
-		console.log(`createAttestationFor called with context:`)
-
+		await ctx.reply(`Creating attestation on ${chain.name}...`)
 		console.log(ctx.session.attestationData)
 
 		// create a new instance of Attester
@@ -29,7 +26,7 @@ export const createAttestationFor = (chain: Chains) => {
 				attesterAddress: ctx.session.attestationData.user.address
 			})
 
-			await ctx.reply(`txHash: ${txHash}`)
+			await ctx.reply(`Attestation created: ${chain.explorerUrl}/attestation/view/${txHash}`)
 		} catch (error) {
 			console.error(error)
 			await ctx.reply(error)

@@ -36,11 +36,29 @@ attestScene.enter(async (ctx) => {
 
 })
 
-// save the eventName and ask for the ticket img 
 attestScene.hears(/.*/, async (ctx, next) => {
 	if (ctx.session.attestationData.eventName) return await next()
-
 	ctx.session.attestationData.eventName = ctx.message.text
+	await ctx.reply('Enter the name of the DAO')
+})
+
+attestScene.hears(/.*/, async (ctx, next) => {
+	if (ctx.session.attestationData.dao) return await next()
+	// search for the dao in db 
+	// save the dao
+	const { data } = await supabase
+		.from('daos')
+		.select('*')
+		.eq('name', ctx.message.text.toLowerCase())
+		.single()
+
+	if (!data) return await ctx.reply('No DAO found with that name')
+	if (!data.allowed_attesters.includes(ctx.session.attestationData.user.address)) {
+		await ctx.reply('You are not allowed to create attestations for this DAO')
+		return await ctx.scene.leave()
+	}
+
+	ctx.session.attestationData.dao = data
 	await ctx.reply('Send a photo of the ticket')
 })
 
@@ -84,42 +102,21 @@ attestScene.hears(NUMBER_REGEX, async (ctx, next) => {
 	await ctx.reply('Add a description for the attestation')
 })
 
-attestScene.hears(/.*/, async (ctx) => {
-	if (!ctx.session.attestationData.imageUrl ||
-		!ctx.session.attestationData.usdAmount) {
-		return await ctx.reply('Not a valid response')
-	}
+attestScene.hears(/.*/, async (ctx, next) => {
+	if (ctx.session.attestationData.description) return await next()
+	ctx.session.attestationData.description = ctx.message.text
 
-	if (!ctx.session.attestationData.description) {
-		// save the description and ask for the dao
-		ctx.session.attestationData.description = ctx.message.text;
-		await ctx.reply('Now enter the name of the DAO')
-	} else if (!ctx.session.attestationData.daoAddress) {
-		// search for the dao in db 
-		// save the dao
-		const { data } = await supabase
-			.from('daos')
-			.select('*')
-			.eq('name', ctx.message.text.toLowerCase())
-			.single()
+	const callbacks = Chains.map(chain => Markup.button.callback(chain.name, chain.id))
 
-		if (!data) return await ctx.reply('No DAO found with that name')
-
-		ctx.session.attestationData.dao = data
-
-		// ask for the chain to conclude
-		await ctx.reply('Select a chain to create the attestation', Markup.inlineKeyboard([
-			Markup.button.callback('Ethereum Sepolia', 'ETHEREUM_ATTESTATION'),
-			Markup.button.callback('Optimism Sepolia', 'OPTIMISM_ATTESTATION'),
-			Markup.button.callback('Arbitrum Sepolia', 'ARBITRUM_ATTESTATION'),
-		]))
-	} else {
-		await ctx.reply('Not a valid response')
-	}
+	// ask for the chain to conclude
+	await ctx.reply('Select a chain to create the attestation', Markup.inlineKeyboard(callbacks))
 })
 
-// create attestation 
-attestScene.action('ETHEREUM_ATTESTATION', createAttestationFor(Chains.EthereumSepolia))
-attestScene.action('OPTIMISM_ATTESTATION', createAttestationFor(Chains.OptimismSepolia))
-attestScene.action('ARBITRUM_ATTESTATION', createAttestationFor(Chains.ArbitrumSepolia))
+attestScene.hears(/.*/, async (ctx) => {
+	await ctx.reply('Not a valid response')
+})
 
+// create attestations
+Chains.forEach(chain => {
+	attestScene.action(chain.id, createAttestationFor(chain))
+})
