@@ -100,7 +100,7 @@ attestScene.hears(/.*/, async (ctx) => {
 		const { data } = await supabase
 			.from('daos')
 			.select('*')
-			.eq('name', ctx.message.text)
+			.eq('name', ctx.message.text.toLowerCase())
 			.single()
 
 		if (!data) return await ctx.reply('No DAO found with that name')
@@ -109,8 +109,9 @@ attestScene.hears(/.*/, async (ctx) => {
 
 		// ask for the chain to conclude
 		await ctx.reply('Select a chain to create the attestation', Markup.inlineKeyboard([
-			Markup.button.callback('Optimism', 'OPTIMISM_ATTESTATION'),
-			Markup.button.callback('Arbitrum', 'ARBITRUM_ATTESTATION'),
+			Markup.button.callback('Ethereum Sepolia', 'ETHEREUM_ATTESTATION'),
+			Markup.button.callback('Optimism Sepolia', 'OPTIMISM_ATTESTATION'),
+			Markup.button.callback('Arbitrum Sepolia', 'ARBITRUM_ATTESTATION'),
 		]))
 	} else {
 		await ctx.reply('Not a valid response')
@@ -118,6 +119,7 @@ attestScene.hears(/.*/, async (ctx) => {
 })
 
 // create attestation 
-attestScene.action('OPTIMISM_ATTESTATION', createAttestationFor(Chains.Optimism))
-attestScene.action('ARBITRUM_ATTESTATION', createAttestationFor(Chains.Arbitrum))
+attestScene.action('ETHEREUM_ATTESTATION', createAttestationFor(Chains.EthereumSepolia))
+attestScene.action('OPTIMISM_ATTESTATION', createAttestationFor(Chains.OptimismSepolia))
+attestScene.action('ARBITRUM_ATTESTATION', createAttestationFor(Chains.ArbitrumSepolia))
 
