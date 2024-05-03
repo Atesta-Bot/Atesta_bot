@@ -20,8 +20,50 @@ import {
 import "@fontsource/inconsolata";
 import "@fontsource/iceland";
 import logo from "../../assets/logos/Logo 1 Blue Attesta Bot.svg";
-
+import React, { useEffect } from "react";
+// import { useEAS } from "../../hooks/useEAS";
 function DappPage() {
+  // const { schemaRegistry, eas, currentAddress } = useEAS();
+
+  useEffect(() => {
+    const getAttestations = async () => {
+      const response = await fetch("https://sepolia.easscan.org/graphql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          query: `
+          query Attestation {
+            attestations(
+             where: {schemaId:{equals: "0x9c3afcf92221b9a0f05fc97ad0a36db27c332596bd7ddc5832975c03a98ae28f"}}
+            
+            ) {
+              id
+              attester
+              recipient
+              refUID
+              revocable
+              revocationTime
+              expirationTime
+              data
+            }
+          }
+          `,
+        }),
+      });
+
+      if (response.ok) {
+        const { data } = await response.json();
+        console.log(data.attestations);
+      } else {
+        console.error(`Error: ${response.status}`);
+      }
+    };
+
+    getAttestations();
+  }, []);
   return (
     <Flex width="100%" flexDir="row" bgColor="#EAEAEA" h="100%">
       <Tabs w="100%" h="100vh" orientation="vertical">
