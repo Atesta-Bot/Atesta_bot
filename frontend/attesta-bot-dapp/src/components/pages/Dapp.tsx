@@ -47,7 +47,8 @@ function DappPage() {
               revocable
               revocationTime
               expirationTime
-              data
+              decodedDataJson
+              timeCreated
             }
           }
           `,
