@@ -23,7 +23,6 @@ attestScene.enter(async (ctx) => {
 		if (!data) throw 'You need to setup the chat before making attestations.\nCall /start again to trigger the setup'
 
 		ctx.session.attestationData = {
-			chatId: ctx.chat?.id,
 			user: data,
 		}
 
@@ -46,20 +45,34 @@ attestScene.hears(/.*/, async (ctx, next) => {
 	if (ctx.session.attestationData.dao) return await next()
 	// search for the dao in db 
 	// save the dao
-	const { data } = await supabase
-		.from('daos')
-		.select('*')
-		.eq('name', ctx.message.text.toLowerCase())
-		.single()
+	try {
+		const { data: dao } = await supabase
+			.from('daos')
+			.select('*')
+			.eq('name', ctx.message.text.toLowerCase())
+			.single()
 
-	if (!data) return await ctx.reply('No DAO found with that name')
-	if (!data.allowed_attesters.includes(ctx.session.attestationData.user.address)) {
-		await ctx.reply('You are not allowed to create attestations for this DAO')
-		return await ctx.scene.leave()
+		if (!dao) return await ctx.reply('No DAO found with that name')
+
+		const { data: allowedAttester } = await supabase
+			.from('allowed_attesters')
+			.select('*')
+			.eq('attester_id', ctx.session.attestationData.user.id)
+			.eq('dao_id', dao.id)
+			.single()
+
+		if (!allowedAttester) {
+			await ctx.reply('You are not allowed to create attestations for this DAO')
+			return await ctx.scene.leave()
+		}
+
+		ctx.session.attestationData.dao = dao
+		await ctx.reply('Send a photo of the ticket')
+
+	} catch (error) {
+		console.error(error)
+		await ctx.reply(error)
 	}
-
-	ctx.session.attestationData.dao = data
-	await ctx.reply('Send a photo of the ticket')
 })
 
 // handle photo upload and ask for the amount in usd

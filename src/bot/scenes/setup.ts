@@ -33,7 +33,7 @@ export const setupScene = new Scenes.WizardScene(
 		await ctx.reply('Before we start, we need some information to get you started...')
 		await ctx.reply('What is your name?');
 		ctx.wizard.state.userData = {
-			chatId: ctx.chat?.id
+			chat_id: ctx.chat?.id
 		};
 		return ctx.wizard.next();
 	},
