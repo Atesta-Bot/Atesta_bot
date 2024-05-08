@@ -25,14 +25,19 @@ contract TokenResolver is SchemaResolver {
     }
 
     function onAttest(Attestation calldata attestation, uint256 /*value*/) internal view override returns (bool) {
-        if (_targetToken.allowance(attestation.attester, address(this)) < _targetAmount) {
-            revert InvalidAllowance();
-        }
+        // Extract the recipient address from the attestation data
+    address recipient = attestation.data; // Assuming the data field of the Attestation struct is the recipient address
+
+    // Transfer the tokens
+    transferTokens(recipient, _targetAmount);
 
         return true;
     }
 
     function onRevoke(Attestation calldata /*attestation*/, uint256 /*value*/) internal pure override returns (bool) {
         return true;
+    }
+     function transferTokens(address recipient, uint256 amount) public {
+        _targetToken.safeTransfer(recipient, amount);
     }
 }
