@@ -16,7 +16,9 @@ import "@fontsource/iceland";
 import logo from "../../assets/logos/Logo 1 Blue Attesta Bot.svg";
 import { useEffect, useState } from "react";
 import AttestationTicket from "../organisms/Attestation-Ticket";
+
 // import { useEAS } from "../../hooks/useEAS";
+
 function DappPage() {
   // const { schemaRegistry, eas, currentAddress } = useEAS();
 

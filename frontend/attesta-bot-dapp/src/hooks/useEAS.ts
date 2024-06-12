@@ -1,4 +1,9 @@
-import { EAS, SchemaRegistry } from "@ethereum-attestation-service/eas-sdk";
+import {
+  EAS,
+  Offchain,
+  SchemaEncoder,
+  SchemaRegistry,
+} from "@ethereum-attestation-service/eas-sdk";
 import ethers from "ethers";
 import { useEffect, useState } from "react";
 import { EAS_ADDRESS, SCHEMA_REGISTRY_ADDRESS } from "../config/config";
