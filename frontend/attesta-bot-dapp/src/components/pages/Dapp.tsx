@@ -16,6 +16,7 @@ import "@fontsource/iceland";
 import logo from "../../assets/logos/Logo 1 Blue Attesta Bot.svg";
 import { useEffect, useState } from "react";
 import AttestationTicket from "../organisms/Attestation-Ticket";
+import { SchemaEncoder, EAS } from "@ethereum-attestation-service/eas-sdk";
 
 // import { useEAS } from "../../hooks/useEAS";
 
@@ -126,7 +127,7 @@ function DappPage() {
                   </Text>
                 </Box>
 
-                <Button color="white" variant={"outline"} ml="8rem">
+                <Button isDisabled color="white" variant={"outline"} ml="8rem">
                   Connect Wallet
                 </Button>
               </Flex>
@@ -144,6 +145,7 @@ function DappPage() {
                 const imageLink = decodedData[4].value.value;
                 console.log("decodedData", decodedData);
                 const uid = "..." + attestation.id.slice(-4);
+                const fullUid = attestation.id;
                 return (
                   <AttestationTicket
                     key={attestation.id}
@@ -154,6 +156,8 @@ function DappPage() {
                     organization={organization}
                     date={humanReadableDate}
                     imageLink={imageLink}
+                    fullUid={fullUid}
+                    attester={attester}
                   />
                 );
               })}

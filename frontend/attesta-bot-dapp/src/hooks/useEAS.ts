@@ -24,6 +24,13 @@ export const useEAS = () => {
       const signer = await provider.getSigner();
       const address = await signer.getAddress();
 
+      //make Atestation code
+      const eas = new EAS("0xC2679fBD37d54388Ce493F1DB75320D236e1815e");
+
+      eas.connect(signer);
+
+      // Continue with your code here using the signer
+
       // Connects an ethers style provider/signingProvider to perform read/write functions.
       easInstance.connect(signer); // allow clients to attest against freelancer's schema
       schemaRegistry.connect(signer); // allow Freelancer to register their own reputation schema
