@@ -8,7 +8,7 @@ function Home() {
     <div>
       <h1>Home</h1>
       <Flex flexDir="column">
-        <Image src={logo} alt="logo" />
+        <Image boxSize="4rem" src={logo} alt="logo" />
         <Heading> WELCOME TO Attesta Bot</Heading>
       </Flex>
       <Button onClick={() => navigate("/dapp")}> Go to DApp</Button>
