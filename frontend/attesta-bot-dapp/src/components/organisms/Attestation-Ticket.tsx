@@ -41,7 +41,9 @@ const AttestationTicket: React.FC<AttestationTicketProps> = ({
   };
 
   const makeAttestation = async () => {
-    const eas = new EAS("0xC2679fBD37d54388Ce493F1DB75320D236e1815e");
+    // base sepolia eas 0x4200000000000000000000000000000000000021
+    // sepolia  0xC2679fBD37d54388Ce493F1DB75320D236e1815e
+    const eas = new EAS("0x4200000000000000000000000000000000000021");
     // Gets a default provider (in production use something else like infura/alchemy)
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
@@ -62,6 +64,9 @@ const AttestationTicket: React.FC<AttestationTicketProps> = ({
       { name: "comments", value: "no comments", type: "string" },
     ]);
 
+    //eth sepolia schema: 0xa51bb919ff8236abd4689317eaeb03fcaae3defb487623eebf08284264af1218
+
+    //Base schema UID
     const schemaUID =
       "0xa51bb919ff8236abd4689317eaeb03fcaae3defb487623eebf08284264af1218";
 
