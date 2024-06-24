@@ -26,9 +26,15 @@ function DappPage() {
   const [attestations, setAttestations] = useState([]);
 
   //Fetch all Attestations by schemaId Using graphql Query
+  // https://base-sepolia.easscan.org/graphql
+  // 0xdb1b4ddf7e76efab3770ddc544f1edf3443b01251747aa8f008137f4bb1d12c4
+
+  // https://sepolia.easscan.org/graphql
+  // 0x9c3afcf92221b9a0f05fc97ad0a36db27c332596bd7ddc5832975c03a98ae28f
+
   useEffect(() => {
     const getAttestations = async () => {
-      const response = await fetch("https://sepolia.easscan.org/graphql", {
+      const response = await fetch("https://base-sepolia.easscan.org/graphql", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -39,7 +45,7 @@ function DappPage() {
           query Attestation {
             attestations(
               orderBy: {time: desc},
-             where: {schemaId:{equals: "0x9c3afcf92221b9a0f05fc97ad0a36db27c332596bd7ddc5832975c03a98ae28f"}}
+             where: {schemaId:{equals: "0xdb1b4ddf7e76efab3770ddc544f1edf3443b01251747aa8f008137f4bb1d12c4"}}
             
             ) {
               id
