@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 import "@fontsource/inconsolata";
 import "@fontsource/iceland";
-import logo from "../../assets/logos/Logo 1 Blue Attesta Bot.svg";
+import logo from "../../assets/logos/Vector Attesta Bot Logo.png";
 import { useEffect, useState } from "react";
 import AttestationTicket from "../organisms/Attestation-Ticket";
 import { SchemaEncoder, EAS } from "@ethereum-attestation-service/eas-sdk";
@@ -92,7 +92,7 @@ function DappPage() {
             style={{ padding: "1rem", justifyContent: "center" }}
             justifyItems="center"
           >
-            <Image alignSelf="center" boxSize="4rem" src={logo} alt="Logo" />
+            <Image alignSelf="center" w="4rem" src={logo} alt="Logo" />
             <p
               style={{
                 color: "#45A5FF",
@@ -113,6 +113,9 @@ function DappPage() {
             Whitelist
           </Tab>
           <Tab _selected={{ color: "#45A5FF", bgColor: "white" }}>History</Tab>
+          <Tab _selected={{ color: "#45A5FF", bgColor: "white" }}>
+            Register your DAO
+          </Tab>
         </TabList>
         {/* Pages */}
         <TabPanels w="100%" h="auto">

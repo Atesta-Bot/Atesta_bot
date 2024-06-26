@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { SchemaEncoder, EAS } from "@ethereum-attestation-service/eas-sdk";
 import { ethers } from "ethers";
+import PaymentModal from "./PayModal";
 
 interface AttestationTicketProps {
   uid: string;
@@ -158,8 +159,8 @@ const AttestationTicket: React.FC<AttestationTicketProps> = ({
             <option value="OPT">OPT</option>
             <option value="ARB">ARB</option>
           </Select>
-          <Button onClick={makeAttestation} ml="1rem" colorScheme="blue">
-            PAY
+          <Button ml="1rem" colorScheme="blue">
+            <PaymentModal makeAttestation={makeAttestation} />
           </Button>
           <AccordionButton w="4rem">
             <AccordionIcon />
