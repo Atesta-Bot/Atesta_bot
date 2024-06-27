@@ -2,8 +2,8 @@ import { EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { getSignerFor } from '../wallet';
 import { IChain } from "../wallet/chains";
 
-const EAS_ADDRESS = "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"; // "0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0";
-const SCHEMA_UID = "0x9c3afcf92221b9a0f05fc97ad0a36db27c332596bd7ddc5832975c03a98ae28f";
+const EAS_ADDRESS = "0x4200000000000000000000000000000000000021"; // "0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0";
+const SCHEMA_UID = "0xdb1b4ddf7e76efab3770ddc544f1edf3443b01251747aa8f008137f4bb1d12c4";
 
 const schemaEncoder = new SchemaEncoder("string DAO_name,string event_name,string description,string usd_amount,string ticket_url,address attester_address");
 

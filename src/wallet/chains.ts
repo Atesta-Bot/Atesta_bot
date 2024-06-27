@@ -16,5 +16,11 @@ export const Chains: IChain[] = [
 		name: 'Optimism Sepolia',
 		rpcEndpoint: 'https://optimism-sepolia-rpc.publicnode.com',
 		explorerUrl: 'https://optimism-sepolia.easscan.org'
+	},
+	{
+		id: 'base-sepolia',
+		name: 'Base Sepolia',
+		rpcEndpoint: 'https://sepolia.base.org',
+		explorerUrl: 'https://base-sepolia.easscan.org'
 	}
 ]
