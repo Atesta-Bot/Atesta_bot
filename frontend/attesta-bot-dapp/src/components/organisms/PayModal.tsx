@@ -29,6 +29,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [amount, setAmount] = useState("");
+  const [comments, setComments] = useState("no comments");
 
   const makeAttestation = async () => {
     // base sepolia eas 0x4200000000000000000000000000000000000021
@@ -51,7 +52,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         type: "string",
       },
       { name: "amount", value: BigInt(amount), type: "uint256" },
-      { name: "comments", value: "no comments", type: "string" },
+      { name: "comments", value: comments, type: "string" },
     ]);
 
     //eth sepolia schema: 0xa51bb919ff8236abd4689317eaeb03fcaae3defb487623eebf08284264af1218
@@ -74,12 +75,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const newAttestationUID = await transaction.wait();
 
     console.log("New attestation UID:", newAttestationUID);
+    onClose();
   };
 
-  const handlePay = async () => {
-    makeAttestation;
-    onClose(); // Close the modal after payment
-  };
+  // const handlePay = async () => {
+  //   makeAttestation;
+  //   onClose(); // Close the modal after payment
+  // };
 
   return (
     <>
@@ -97,13 +99,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
+            <Input
+              placeholder="Enter comments"
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+            />
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={onClose}>
+            <Button colorScheme="red" mr={3} onClick={onClose}>
               Cancel
             </Button>
-            <Button variant="ghost" onClick={handlePay}>
+            <Button colorScheme="blue" onClick={makeAttestation}>
               Pay
             </Button>
           </ModalFooter>
