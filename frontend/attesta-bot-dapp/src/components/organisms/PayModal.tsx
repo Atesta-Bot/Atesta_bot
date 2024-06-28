@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   useDisclosure,
   Modal,
@@ -15,6 +15,12 @@ import {
 import { useNavigate } from "react-router-dom";
 import { SchemaEncoder, EAS } from "@ethereum-attestation-service/eas-sdk";
 import { ethers } from "ethers";
+import { loadStripeOnramp } from '@stripe/crypto';
+import { CryptoElements, OnrampElement } from './StripeFiat';
+
+const stripeOnrampPromise = loadStripeOnramp(
+  "pk_test_51Hjzj6H0FO59ioJ3X5qXYwDqGuRsSCWD8bMYJGthOw6Xi24DzlMBLIjFVZfLpeoPuk2SqB7uYZN0Lymci50P9P1400eUytv3lz"
+);
 
 interface PaymentModalProps {
   attester: string;
@@ -30,6 +36,46 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [amount, setAmount] = useState("");
   const [comments, setComments] = useState("no comments");
+  const [clientSecret, setClientSecret] = useState("");
+  const [message, setMessage] = useState("");
+  
+  useEffect(() => {
+    // Fetches an onramp session and captures the client secret
+    fetch(
+      "http://localhost:8080/stripe-session",
+      {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        transaction_details: {
+          wallet_address: "attester_wallet_address",
+          destination_currency: "usdc",
+          destination_currencies: ["usdc", "eth"],
+          destination_exchange_amount: 100,
+          destination_network: "avalanche",
+        },
+        customer_information: {
+          email: "john@doe.com",
+          first_name: "John",
+          last_name: "Doe",
+          dob: {
+            day: 4,
+            month: 4,
+            year: 1990,
+          },
+        }
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => setClientSecret(data.clientSecret));
+  }, []);
+
+  const onChange = useCallback(({ session }: { session: { status: string, transaction_id: string } }) => {
+    console.log("session", session);
+    setMessage(`OnrampSession is now in ${session.status} state.`);
+  }, []);
+
+  console.log("clientSecret", clientSecret);
 
   const makeAttestation = async () => {
     // base sepolia eas 0x4200000000000000000000000000000000000021
@@ -104,6 +150,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               value={comments}
               onChange={(e) => setComments(e.target.value)}
             />
+            <CryptoElements stripeOnramp={stripeOnrampPromise}>
+        {clientSecret && (
+          <OnrampElement
+            id="onramp-element"
+            clientSecret={clientSecret}
+            appearance={{ theme: "dark" }}
+            onChange={onChange}
+            onReady={() => {}}
+          />
+        )}
+      </CryptoElements>
           </ModalBody>
 
           <ModalFooter>
