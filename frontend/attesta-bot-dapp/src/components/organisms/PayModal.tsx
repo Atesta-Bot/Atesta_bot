@@ -11,8 +11,16 @@ import {
   Button,
   Input,
   Text,
+  Image,
+  Flex,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
 } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
+import receiptIcon from "../../assets/Icons/receipt.png";
+
 import { SchemaEncoder, EAS } from "@ethereum-attestation-service/eas-sdk";
 import { ethers } from "ethers";
 import { loadStripeOnramp } from "@stripe/crypto";
@@ -135,45 +143,81 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   return (
     <>
-      <Button onClick={onOpen}>PAY</Button>
+      <Button colorScheme="blue" bgColor="#45A6FF" onClick={onOpen}>
+        PAY
+      </Button>
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader fontFamily="Inconsolata">Payment</ModalHeader>
+          <ModalHeader
+            justifyItems="center"
+            textAlign="center"
+            alignSelf="center"
+          >
+            <Flex>
+              <Image alignSelf="center" w="2.5rem" src={receiptIcon} />
+              <Text pt=".2rem">Pay Attestation</Text>
+            </Flex>
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Text>Total Amount:{attestedAmount}</Text>
-            <Input
-              placeholder="Enter payment amount"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-            <Input
-              placeholder="Enter comments"
-              value={comments}
-              onChange={(e) => setComments(e.target.value)}
-            />
-            <CryptoElements stripeOnramp={stripeOnrampPromise}>
-              {clientSecret && (
-                <OnrampElement
-                  id="onramp-element"
-                  clientSecret={clientSecret}
-                  appearance={{ theme: "dark" }}
-                  onChange={onChange}
-                  onReady={() => {}}
-                />
-              )}
-            </CryptoElements>
+            <Text color="#45A6FF">
+              Attested Amount:
+              <Text fontSize="2rem" color="black">
+                ${attestedAmount}
+              </Text>
+            </Text>
+
+            <Flex>
+              <Tabs variant="enclosed">
+                <TabList>
+                  <Tab>Pay with Stripe</Tab>
+                  <Tab>Pay onChain</Tab>
+                </TabList>
+                <TabPanels>
+                  <TabPanel>
+                    <CryptoElements stripeOnramp={stripeOnrampPromise}>
+                      {clientSecret && (
+                        <OnrampElement
+                          id="onramp-element"
+                          clientSecret={clientSecret}
+                          appearance={{ theme: "light" }}
+                          onChange={onChange}
+                          onReady={() => {}}
+                        />
+                      )}
+                    </CryptoElements>
+                  </TabPanel>
+                  <TabPanel>
+                    <Input
+                      mt="2rem"
+                      borderColor="#45A6FF"
+                      placeholder="Enter payment amount"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                    />
+                    <Input
+                      mt="2rem"
+                      mb="2rem"
+                      borderColor="#45A6FF"
+                      placeholder="Enter comments"
+                      value={comments}
+                      onChange={(e) => setComments(e.target.value)}
+                    />
+                    <Button colorScheme="blue" onClick={makeAttestation}>
+                      Pay
+                    </Button>
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
+            </Flex>
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="red" mr={3} onClick={onClose}>
+            {/* <Button colorScheme="red" mr={3} onClick={onClose}>
               Cancel
-            </Button>
-            <Button colorScheme="blue" onClick={makeAttestation}>
-              Pay
-            </Button>
+            </Button> */}
           </ModalFooter>
         </ModalContent>
       </Modal>

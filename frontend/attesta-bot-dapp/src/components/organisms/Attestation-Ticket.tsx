@@ -104,7 +104,7 @@ const AttestationTicket: React.FC<AttestationTicketProps> = ({
             </Text>
             <Text
               fontFamily="Inconsolata"
-              color="#1E1E1E"
+              color="#45A6FF"
               fontSize="18px"
               alignSelf="center"
             >
@@ -116,13 +116,13 @@ const AttestationTicket: React.FC<AttestationTicketProps> = ({
             <option value="OPT">OPT</option>
             <option value="ARB">ARB</option>
           </Select>
-          <Button ml="1rem" colorScheme="blue">
-            <PaymentModal
-              fullUid={fullUid}
-              attester={attester}
-              attestedAmount={amount}
-            />
-          </Button>
+
+          <PaymentModal
+            fullUid={fullUid}
+            attester={attester}
+            attestedAmount={amount}
+          />
+
           <AccordionButton w="4rem">
             <AccordionIcon />
           </AccordionButton>
@@ -156,7 +156,7 @@ const AttestationTicket: React.FC<AttestationTicketProps> = ({
               </Text>
             </Flex>
             <Button onClick={useNavigate}>View Ticket</Button>
-            <Button ml="1rem" colorScheme="orange">
+            <Button variant="outline" ml="1rem" colorScheme="red">
               Reject
             </Button>
           </Flex>
