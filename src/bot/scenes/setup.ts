@@ -56,6 +56,7 @@ export const setupScene = new Scenes.WizardScene(
 		ctx.wizard.state.userData.address = ctx.message.text;
 
 		await ctx.reply('Saving your profile...')
+		console.log('User data so far:', JSON.stringify(ctx.wizard.state.userData))
 		const { error } = await supabase
 			.from('attesters')
 			.insert(ctx.wizard.state.userData)

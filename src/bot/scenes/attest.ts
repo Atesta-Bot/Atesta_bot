@@ -83,19 +83,20 @@ attestScene.on('photo', async (ctx) => {
 
 		const photo = ctx.message.photo.pop()
 		const fileLink = await ctx.telegram.getFileLink(photo?.file_id)
-
+		console.log('file link: ', fileLink)
 		// download file from telegram servers
 		const res = await fetch(fileLink)
 		const file = await res.blob()
 
 		// upload the file to supbase
 		const fileName = `ticket-${photo?.file_unique_id}-${Date.now()}.jpeg`
-		const url = await uploadFile(Bucket.Tickets, fileName, file)
-		console.log(`Image uploaded: ${url}`)
+		console.log('file name: ', fileName, file)
+		// const url = await uploadFile(Bucket.Tickets, fileName, file)
+		// console.log(`Image uploaded: ${url}`)
 		await ctx.reply('Done')
 
 		// await ctx.reply(url)
-		ctx.session.attestationData.imageUrl = url
+		ctx.session.attestationData.imageUrl = "ticket-AQADLawxG2qb4Ed9-1719435862355.jpeg" //url
 		await ctx.reply('Now enter the fiat amount to be payed in USD')
 	} catch (error) {
 		await ctx.reply('Error')
