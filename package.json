@@ -21,6 +21,7 @@
 		"@supabase/supabase-js": "^2.39.8",
 		"dotenv": "^16.4.1",
 		"ethers": "^6.10.0",
+		"node-fetch": "^2.7.0",
 		"telegraf": "^4.15.3",
 		"typegram": "^5.2.0"
 	}

@@ -10,7 +10,7 @@ export const createAttestationFor = (chain: IChain) => {
 	return async (ctx: Context) => {
 		// todo: Handle attestation creation
 		await ctx.reply(`Creating attestation on ${chain.name}...`)
-		console.log(ctx.session.attestationData)
+		// console.log('ATTEST DATA ', ctx.session.attestationData)
 
 		// create a new instance of Attester
 		const attester = new Attester(chain);
@@ -22,7 +22,7 @@ export const createAttestationFor = (chain: IChain) => {
 				eventName: ctx.session.attestationData.eventName,
 				description: ctx.session.attestationData.description,
 				usdAmount: ctx.session.attestationData.usdAmount,
-				ticketUrl: ctx.session.attestationData.imageUrl,
+				ticketUrl: ctx.session.attestationData.imageUrl.publicUrl,
 				attesterAddress: ctx.session.attestationData.user.address
 			})
 

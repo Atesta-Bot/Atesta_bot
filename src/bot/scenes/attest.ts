@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { Markup, Scenes } from "telegraf";
+import fetch from 'node-fetch';
 import { supabase, uploadFile } from "../../db";
 import { Bucket } from "../../types/buckets";
 import { Chains } from "../../wallet/chains";
@@ -42,17 +43,27 @@ attestScene.hears(/.*/, async (ctx, next) => {
 })
 
 attestScene.hears(/.*/, async (ctx, next) => {
-	if (ctx.session.attestationData.dao) return await next()
 	// search for the dao in db 
 	// save the dao
 	try {
-		const { data: dao } = await supabase
+
+		if (ctx.session.attestationData.dao) return await next();
+
+		const daoName = ctx.message.text.toLowerCase().trim();
+
+		if (!daoName) {
+			return await ctx.reply('Please provide a valid DAO name.');
+		}
+
+		const { data: dao, error: daoError } = await supabase
 			.from('daos')
 			.select('*')
 			.eq('name', ctx.message.text.toLowerCase())
 			.single()
 
-		if (!dao) return await ctx.reply('No DAO found with that name')
+		if (daoError || !dao) {
+            return await ctx.reply('No DAO found with that name.');
+        }
 
 		const { data: allowedAttester } = await supabase
 			.from('allowed_attesters')
@@ -85,23 +96,46 @@ attestScene.on('photo', async (ctx) => {
 		const fileLink = await ctx.telegram.getFileLink(photo?.file_id)
 		console.log('file link: ', fileLink)
 		// download file from telegram servers
-		const res = await fetch(fileLink)
-		const file = await res.blob()
+		const res = await fetch(fileLink.href)
+
+		if (!res.ok) {
+			throw new Error(`Failed to download image: ${res.statusText}`);
+		}
+		// console.log('---->> ', res);
+
+		const fileBuffer = await res.arrayBuffer();
+		const buffer = Buffer.from(fileBuffer); 
 
 		// upload the file to supbase
-		const fileName = `ticket-${photo?.file_unique_id}-${Date.now()}.jpeg`
-		console.log('file name: ', fileName, file)
-		// const url = await uploadFile(Bucket.Tickets, fileName, file)
-		// console.log(`Image uploaded: ${url}`)
-		await ctx.reply('Done')
+		// Subir el archivo a Supabase
+		const fileName = `ticket-${photo?.file_unique_id}-${Date.now()}.jpeg`;
+		// console.log('File name: ', fileName);
 
-		// await ctx.reply(url)
-		ctx.session.attestationData.imageUrl = "ticket-AQADLawxG2qb4Ed9-1719435862355.jpeg" //url
-		await ctx.reply('Now enter the fiat amount to be payed in USD')
+		const { data, error } = await supabase.storage
+			.from('tickets')
+			.upload(fileName, buffer, {
+				contentType: 'image/jpeg',
+			});
+		console.log('Image uploaded: ', data);
+
+		if (error) {
+			throw new Error(`Failed to upload image to Supabase: ${error.message}`);
+		}
+
+		// Guardar la URL de la imagen en la sesión
+		const { data: publicURL } = supabase
+			.storage
+			.from('tickets')
+			.getPublicUrl(fileName);
+
+		console.log('Public URL: ', publicURL);
+		ctx.session.attestationData.imageUrl = publicURL;
+
+		await ctx.reply('Photo uploaded successfully!');
+		await ctx.reply('Now enter the fiat amount to be paid in USD');
 	} catch (error) {
-		await ctx.reply('Error')
-		console.error(error)
-		await ctx.reply(error)
+		console.error('Error during photo upload:', error);
+		await ctx.reply('An error occurred while uploading the photo. Please try again.');
 	}
 })
 
