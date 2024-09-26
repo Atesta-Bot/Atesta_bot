@@ -24,7 +24,7 @@ export const createAttestationFor = (chain: IChain) => {
 				usdAmount: ctx.session.attestationData.usdAmount,
 				ticketUrl: ctx.session.attestationData.imageUrl.publicUrl,
 				attesterAddress: ctx.session.attestationData.user.address
-			})
+			}, chain)
 
 			await ctx.reply(`Attestation created: ${chain.explorerUrl}/attestation/view/${txHash}`)
 		} catch (error) {

@@ -11,12 +11,12 @@ export const Chains: IChain[] = [
 	// 	rpcEndpoint: 'https://ethereum-sepolia-rpc.publicnode.com',
 	// 	explorerUrl: 'https://sepolia.easscan.org'
 	// },
-	// {
-	// 	id: 'optimism-sepolia',
-	// 	name: 'Optimism Sepolia',
-	// 	rpcEndpoint: 'https://optimism-sepolia-rpc.publicnode.com',
-	// 	explorerUrl: 'https://optimism-sepolia.easscan.org'
-	// },
+	{
+	 	id: 'arbitrum',
+	 	name: 'Arbitrum',
+	 	rpcEndpoint: 'https://arbitrum.drpc.org',
+	 	explorerUrl: 'https://arbitrum.easscan.org'
+	},
 	{
 		id: 'base-sepolia',
 		name: 'Base Sepolia',
