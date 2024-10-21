@@ -35,7 +35,7 @@ const AttestationTicket: React.FC<AttestationTicketProps> = ({
   fullUid,
   attester,
 }) => {
-  const useNavigate = () => {
+  const handleNavigate = () => {
     window.open(imageLink, "_blank");
   };
 
@@ -48,7 +48,7 @@ const AttestationTicket: React.FC<AttestationTicketProps> = ({
       p="1rem"
     >
       <AccordionItem borderColor="transparent">
-        <Flex w="100%" justify="space-between">
+        <Flex w="100%" justify="space-between" wrap="wrap">
           <Flex flexDir="column" ml="1rem">
             <Text
               fontFamily="Inconsolata"
@@ -127,8 +127,9 @@ const AttestationTicket: React.FC<AttestationTicketProps> = ({
             <AccordionIcon />
           </AccordionButton>
         </Flex>
+
         <AccordionPanel pb={4}>
-          <Flex justify="space-evenly">
+          <Flex justify="space-evenly" wrap="wrap">
             <Flex flexDir="column" ml="1rem">
               <Text
                 fontFamily="Inconsolata"
@@ -155,7 +156,7 @@ const AttestationTicket: React.FC<AttestationTicketProps> = ({
                 {date}
               </Text>
             </Flex>
-            <Button onClick={useNavigate}>View Ticket</Button>
+            <Button onClick={handleNavigate}>View Ticket</Button>
             <Button variant="outline" ml="1rem" colorScheme="red">
               Reject
             </Button>

@@ -1,7 +1,5 @@
 import {
   EAS,
-  Offchain,
-  SchemaEncoder,
   SchemaRegistry,
 } from "@ethereum-attestation-service/eas-sdk";
 import ethers from "ethers";

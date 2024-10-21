@@ -4,3 +4,9 @@ export const EAS_ADDRESS = "0xC2679fBD37d54388Ce493F1DB75320D236e1815e"; // Sepo
 
 export const SCHEMA =
   "string DAO_name,string event_name,string description,string usd_amount,string ticket_url,address attester_address";
+
+
+export const enviromentId = process.env.DYNAMIC_ENV_ID
+    if(!enviromentId){
+      throw Error('Dynamic env ID not found')
+    }
