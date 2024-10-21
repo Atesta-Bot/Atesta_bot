@@ -19,24 +19,27 @@ import AttestationTicket from "../organisms/Attestation-Ticket";
 import { useAccount } from 'wagmi';
 import logo from "../../assets/logos/Vector Attesta Bot Logo.png";
 import { DynamicWidget } from "@dynamic-labs/sdk-react-core";
-import { useWalletClient } from 'wagmi';
 import { Attestation } from "../../lib/types";
 
-
-
 function DappPage() {
-  const { address, isConnected } = useAccount();  
+  const { address, isConnected } = useAccount();
   const [attestations, setAttestations] = useState<Attestation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log('address', address);
-  console.log(isConnected);
-  console.log(useWalletClient().data);
+  // Clear attestations when the wallet disconnects
+  useEffect(() => {
+    if (!isConnected) {
+      setAttestations([]);
+      setLoading(false);
+    }
+  }, [isConnected]);
 
   useEffect(() => {
     const getAttestations = async () => {
-      if (!address || !isConnected) return; 
+      if (!address || !isConnected) return;  // Ensure user is connected and address is available
+
+      setLoading(true);
       try {
         const response = await fetch("https://base-sepolia.easscan.org/graphql", {
           method: "POST",
@@ -67,7 +70,7 @@ function DappPage() {
               }
             `,
             variables: {
-              signerAddress: address, 
+              signerAddress: address,
             },
           }),
         });
@@ -85,8 +88,10 @@ function DappPage() {
       }
     };
 
-    getAttestations();
-  }, [address, isConnected]);  // Ensure the query runs when the address is available and user is connected
+    if (isConnected) {
+      getAttestations();
+    }
+  }, [address, isConnected]);
 
   return (
     <Flex width="100%" height="100vh" flexDir="column" bgColor="#EAEAEA">
