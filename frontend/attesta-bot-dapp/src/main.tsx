@@ -10,6 +10,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http } from "viem";
 import { baseSepolia } from "viem/chains";
 
+const environmentId = import.meta.env.VITE_ENVIRONMENT_ID;
+
 const config = createConfig({
   chains: [baseSepolia],
   multiInjectedProviderDiscovery: true,
@@ -28,7 +30,8 @@ root.render(
     <ChakraProvider>
       <DynamicContextProvider
         settings={{
-          environmentId: "df1e11b9-2518-432d-8952-55069ca46ce3",
+          // Use the environment variable for the environment ID
+          environmentId: environmentId!,
           walletConnectors: [EthereumWalletConnectors],
         }}
       >
