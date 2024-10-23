@@ -7,93 +7,103 @@ import {
   TabPanel,
   Image,
   Heading,
-  Button,
   Text,
+  Spinner,
+  Alert,
+  AlertIcon,
   Box,
+  Center,
 } from "@chakra-ui/react";
-import "@fontsource/inconsolata";
-import "@fontsource/iceland";
-import logo from "../../assets/logos/Vector Attesta Bot Logo.png";
 import { useEffect, useState } from "react";
 import AttestationTicket from "../organisms/Attestation-Ticket";
-import { SchemaEncoder, EAS } from "@ethereum-attestation-service/eas-sdk";
-
-// import { useEAS } from "../../hooks/useEAS";
+import { useAccount } from 'wagmi';
+import logo from "../../assets/logos/Vector Attesta Bot Logo.png";
+import { DynamicWidget } from "@dynamic-labs/sdk-react-core";
+import { Attestation } from "../../lib/types";
 
 function DappPage() {
-  // const { schemaRegistry, eas, currentAddress } = useEAS();
+  const { address, isConnected } = useAccount();
+  const [attestations, setAttestations] = useState<Attestation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [attestations, setAttestations] = useState([]);
-
-  //Fetch all Attestations by schemaId Using graphql Query
-  // https://base-sepolia.easscan.org/graphql
-  // 0xdb1b4ddf7e76efab3770ddc544f1edf3443b01251747aa8f008137f4bb1d12c4
-
-  // https://sepolia.easscan.org/graphql
-  // 0x9c3afcf92221b9a0f05fc97ad0a36db27c332596bd7ddc5832975c03a98ae28f
+  // Clear attestations when the wallet disconnects
+  useEffect(() => {
+    if (!isConnected) {
+      setAttestations([]);
+      setLoading(false);
+    }
+  }, [isConnected]);
 
   useEffect(() => {
     const getAttestations = async () => {
-      const response = await fetch("https://base-sepolia.easscan.org/graphql", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          query: `
-          query Attestation {
-            attestations(
-              orderBy: {time: desc},
-             where: {schemaId:{equals: "0xdb1b4ddf7e76efab3770ddc544f1edf3443b01251747aa8f008137f4bb1d12c4"}}
-            
-            ) {
-              id
-              attester
-              recipient
-              refUID
-              revocable
-              revocationTime
-              expirationTime
-              decodedDataJson
-              timeCreated
-            }
-          }
-          `,
-        }),
-      });
+      if (!address || !isConnected) return;  // Ensure user is connected and address is available
 
-      if (response.ok) {
+      setLoading(true);
+      try {
+        const response = await fetch("https://base-sepolia.easscan.org/graphql", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            query: `
+              query Attestation($signerAddress: String!) {
+                attestations(
+                  orderBy: { time: desc },
+                  where: {
+                    schemaId: { equals: "0xdb1b4ddf7e76efab3770ddc544f1edf3443b01251747aa8f008137f4bb1d12c4" },
+                    attester: { equals: $signerAddress }
+                  }
+                ) {
+                  id
+                  attester
+                  recipient
+                  refUID
+                  revocable
+                  revocationTime
+                  expirationTime
+                  decodedDataJson
+                  timeCreated
+                }
+              }
+            `,
+            variables: {
+              signerAddress: address,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+
         const { data } = await response.json();
-
         setAttestations(data.attestations);
-      } else {
-        console.error(`Error: ${response.status}`);
+      } catch (error) {
+        setError((error as Error).message || String(error));
+      } finally {
+        setLoading(false);
       }
     };
 
-    getAttestations();
-  }, []);
+    if (isConnected) {
+      getAttestations();
+    }
+  }, [address, isConnected]);
 
-  console.log("attestations", attestations);
   return (
-    <Flex width="100%" flexDir="row" bgColor="#EAEAEA">
-      {/* Side Menu */}
-      <Tabs w="100%" h="auto" orientation="vertical">
+    <Flex width="100%" height="100vh" flexDir="column" bgColor="#EAEAEA">
+      <Tabs w="100%" h="100%" orientation="vertical" flex="1">
         <TabList
           bgColor="white"
-          style={{
-            fontFamily: "Inconsolata",
-          }}
+          style={{ fontFamily: "Inconsolata" }}
           w="22rem"
         >
-          <Flex
-            flexDir="column"
-            style={{ padding: "1rem", justifyContent: "center" }}
-            justifyItems="center"
-          >
+          <Flex flexDir="column" style={{ padding: "1rem", justifyContent: "center" }}>
             <Image alignSelf="center" w="4rem" src={logo} alt="Logo" />
-            <p
+            <Text
               style={{
                 color: "#45A5FF",
                 fontFamily: "Iceland",
@@ -103,24 +113,18 @@ function DappPage() {
               }}
             >
               Attesta Bot
-            </p>
+            </Text>
           </Flex>
 
-          <Tab _selected={{ color: "#45A5FF", bgColor: "white" }}>
-            Pending Tickets
-          </Tab>
-          <Tab _selected={{ color: "#45A5FF", bgColor: "white" }}>
-            Whitelist
-          </Tab>
+          <Tab _selected={{ color: "#45A5FF", bgColor: "white" }}>Pending Tickets</Tab>
+          <Tab _selected={{ color: "#45A5FF", bgColor: "white" }}>Whitelist</Tab>
           <Tab _selected={{ color: "#45A5FF", bgColor: "white" }}>History</Tab>
-          <Tab _selected={{ color: "#45A5FF", bgColor: "white" }}>
-            Register your DAO
-          </Tab>
+          <Tab _selected={{ color: "#45A5FF", bgColor: "white" }}>Register your DAO</Tab>
         </TabList>
-        {/* Pages */}
-        <TabPanels w="100%" h="auto">
-          <TabPanel width="100%">
-            <Flex flexDir="column" w="100%">
+
+        <TabPanels w="100%" h="100%">
+          <TabPanel width="100%" h="100%">
+            <Flex flexDir="column" w="100%" h="100%" justifyContent="flex-start" overflowY="auto">
               <Flex
                 borderRadius="8px"
                 padding="2rem"
@@ -135,48 +139,71 @@ function DappPage() {
                     Review and pay your pending tickets{" "}
                   </Text>
                 </Box>
-
-                <Button isDisabled color="white" variant={"outline"} ml="8rem">
-                  Connect Wallet
-                </Button>
+                <DynamicWidget />
               </Flex>
-              {/* Mapping of Attestations */}
-              {attestations.map((attestation) => {
+
+              {!isConnected && (
+                <Center flex="1">
+                  <Alert status="warning" mt="2rem" w="50%">
+                    <AlertIcon />
+                    Please connect your wallet to view your tickets.
+                  </Alert>
+                </Center>
+              )}
+
+              {loading && isConnected && (
+                <Flex justifyContent="center" alignItems="center" flex="1">
+                  <Spinner size="xl" />
+                </Flex>
+              )}
+
+              {error && (
+                <Alert status="error" mt="2rem" w="50%" mx="auto">
+                  <AlertIcon />
+                  {error}
+                </Alert>
+              )}
+
+              {!loading && !error && isConnected && attestations.length === 0 && (
+                <Center flex="1">
+                  <Text fontSize="2xl" color="#1E1E1E">
+                    No attestations found for your account.
+                  </Text>
+                </Center>
+              )}
+
+              {!loading && !error && isConnected && attestations.map((attestation) => {
                 const decodedData = JSON.parse(attestation.decodedDataJson);
-                const amount = decodedData[3].value.value;
-                const attester = decodedData[5].value.value;
-                const attesterSlice = "..." + attester.slice(-4);
+                const daoName = decodedData[0].value.value;
                 const description = decodedData[2].value.value;
-                const organization = decodedData[0].value.value;
+                const usdtAmount = decodedData[3].value.value;
+                const ticketUrl = decodedData[4].value.value;
+                const attester = decodedData[5].value.value;
+
+                const attesterSlice = "..." + attester.slice(-4);
                 const timeCreated = attestation.timeCreated;
-                const date = new Date(timeCreated * 1000); // JavaScript uses milliseconds, so multiply by 1000
-                const humanReadableDate = date.toLocaleString(); // Converts to a string like "12/19/2021, 7:35:22 PM"
-                const imageLink = decodedData[4].value.value;
-                console.log("decodedData", decodedData);
+                const date = new Date(timeCreated * 1000);
+                const humanReadableDate = date.toLocaleString();
+
                 const uid = "..." + attestation.id.slice(-4);
                 const fullUid = attestation.id;
+
                 return (
                   <AttestationTicket
                     key={attestation.id}
                     uid={uid}
                     from={attesterSlice}
-                    amount={amount}
+                    amount={usdtAmount}
                     description={description}
-                    organization={organization}
+                    organization={daoName}
                     date={humanReadableDate}
-                    imageLink={imageLink}
+                    imageLink={ticketUrl}
                     fullUid={fullUid}
                     attester={attester}
                   />
                 );
               })}
             </Flex>
-          </TabPanel>
-          <TabPanel>
-            <p>two!</p>
-          </TabPanel>
-          <TabPanel>
-            <p>three!</p>
           </TabPanel>
         </TabPanels>
       </Tabs>
